@@ -3,7 +3,148 @@ from analytics.analytics import *
 import analytics.analytics as analytics
 import mysql.connector
 
-st.set_page_config(page_title="YouTube Analytics Dashboard", layout="wide")
+import streamlit as st
+
+
+if "authenticated" not in st.session_state:
+    st.switch_page("../authentication.py")
+
+
+st.set_page_config(
+    page_title="YouTube Analytics & Insights Dashboard",
+    layout="wide"
+)
+
+# ==============================
+# CUSTOM DARK BLUE UI THEME
+# ==============================
+
+st.markdown("""
+<style>
+section[data-testid="stSidebar"] {
+    display: none !important;
+}
+/* ---- MAIN BACKGROUND ---- */
+.stApp {
+    background: radial-gradient(
+        circle at bottom left,
+        #0a2a43 35%,
+        #04111d 70%,
+        #000000 80%
+    );
+    color: #eaeaea;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+/* ---- HEADINGS ---- */
+h1, h2, h3, h4 {
+    color: #CCCCCC;
+    font-weight: 600;
+}
+
+/* ---- TABS ---- */
+.stTabs [data-baseweb="tab"] {
+    color: #9bbcd6;
+    font-size: 16px;
+}
+
+.stTabs [aria-selected="true"] {
+    color: #4cc3ff !important;
+    border-bottom: 3px solid #4cc3ff;
+}
+
+/* ---- METRIC CARDS ---- */
+div[data-testid="metric-container"] {
+    background: linear-gradient(
+        145deg,
+        #0b253a,
+        #081a2a
+    );
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: 0 0 12px rgba(0, 140, 255, 0.15);
+}
+
+div[data-testid="metric-container"] label {
+    color: #9bbcd6;
+}
+
+div[data-testid="metric-container"] div {
+    color: #ffffff;
+}
+
+/* ---- TABLES ---- */
+thead tr th {
+    background-color: #0b253a !important;
+    color: #9bdcff !important;
+}
+
+tbody tr td {
+    background-color: #040e18 !important;
+    color: #eaeaea !important;
+}
+
+tbody tr:hover td {
+    background-color: #0b253a !important;
+}
+            p {
+    color: #9bbcd6;        /* soft blue-gray for readability */
+    font-size: 25px;
+    line-height: 1.6;
+    font-weight: 400;
+    margin-bottom: 0.6rem;
+}
+.st-emotion-cache-1q82h82{
+            color: #A9A9A9;
+}
+/* ---- INPUT BOXES ---- */
+input, textarea {
+    background-color: #081a2a !important;
+    color: #ffffff !important;
+    border-radius: 8px;
+}
+            .st-emotion-cache-1jsf23j>p{
+             font-size: 17px;
+            
+            color: #4DD0E1;
+}
+            
+            
+.stAlertContainer {
+    background-color: #102437 !important;
+    color: #ffffff !important;
+    border-radius: 8px; 
+            }
+            .st-emotion-cache-pk3c77>p{
+            color: #FFC857!important;
+            font-size: 16px;    }
+p>strong{
+            color: #FF6F61!important;
+            font-size: 24px;        }
+
+
+        .st-emotion-cache-5wrjf1>p{
+            color:#fcc909!important;   
+            font-size: 23px;    }
+
+/* ---- SELECT BOX ---- */
+div[data-baseweb="select"] > div {
+    background-color: #081a2a !important;
+    color: white !important;
+}
+
+/* ---- SCROLLBAR ---- */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-thumb {
+    background: #4cc3ff;
+    border-radius: 6px;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
 
 st.title("YouTube Analytics & Insights Dashboard")
 
@@ -52,7 +193,7 @@ with tab1:
     if df.empty:
         st.warning("No data available for this channel.")
         st.stop()
-        
+
     st.subheader("Overview")
     col1, col2, col3, col4 = st.columns(4)
 
