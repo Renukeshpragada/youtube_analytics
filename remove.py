@@ -10,7 +10,7 @@ import analytics.analytics as analytics
 # AUTH GUARD
 # ==============================
 if "authenticated" not in st.session_state:
-    st.switch_page("authentication.py")
+    st.switch_page("pages/authentication.py")
 
 
 # ==============================
@@ -137,24 +137,6 @@ div[data-baseweb="select"] > div {
     background-color: #081a2a !important;
     color: white !important;
 }
-            input::placeholder {
-    color: #A9A9A9 !important;   /* brighter blue */
-    opacity: 1 !important;       /* full brightness */
-}
-
-/* For better browser compatibility */
-input::-webkit-input-placeholder {
-    color:  #A9A9A9 !important;
-    opacity: 1 !important;
-}
-
-input:-ms-input-placeholder {
-    color:  #A9A9A9 !important;
-}
-
-input::-ms-input-placeholder {
-    color:  #A9A9A9 !important;
-}
 
 /* ---- SCROLLBAR ---- */
 ::-webkit-scrollbar {
@@ -204,7 +186,7 @@ st.markdown("## 🔍 Channel Lookup")
 
 channel_input = st.text_input(
     "Enter YouTube Channel Name",
-    placeholder="e.g. Think School, Veritasium"
+    placeholder="e.g. Madan Gowri, Think School, Veritasium"
 )
 
 # ---- STOP HERE IF EMPTY ----
