@@ -1,0 +1,16 @@
+streamlit
+pandas
+numpy
+mysql-connector-python
+
+google-api-python-client
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+
+authlib
+requests
+isodate
+
+matplotlib
+seaborn
