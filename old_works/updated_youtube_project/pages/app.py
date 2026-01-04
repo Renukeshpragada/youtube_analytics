@@ -279,7 +279,6 @@ with tab1:
 # ==============================
 with tab2:
     st.subheader("Performance Analysis")
-with tab2:
     st.subheader("Monthly Views Distribution")
     mv = monthly_views(df)
     st.line_chart(mv, x="month_name", y="views")
@@ -288,8 +287,6 @@ with tab2:
         "Shows total views of videos published in each month "
         "(based on publish date)."
     )
-
-with tab2:
     st.subheader("Upload Frequency vs Average Views")
 
     freq_df = upload_frequency_vs_views(df)
@@ -302,7 +299,6 @@ with tab2:
 # ==============================
 with tab3:
     st.subheader("Engagement Analysis")
-with tab3:
     avg_eng = round(df["engagement_rate"].mean(), 4)
 
     st.metric(
@@ -313,8 +309,6 @@ with tab3:
     st.caption(
         "Engagement Rate = (Likes + Comments) / Views"
     )
-
-with tab3:
     st.subheader("Likes vs Comments Correlation")
 
     st.scatter_chart(
@@ -340,7 +334,6 @@ with tab3:
 # ==============================
 with tab4:
     st.subheader("Upload Strategy Analysis")
-with tab4:
     st.subheader("Best Day to Upload")
 
     day_df = (
@@ -350,8 +343,6 @@ with tab4:
     )
 
     st.bar_chart(day_df)
-
-with tab4:
     st.subheader("Best Hour to Upload")
 
     hour_df = (
@@ -361,7 +352,6 @@ with tab4:
     )
 
     st.line_chart(hour_df)
-with tab4:
     st.subheader("Upload Frequency vs Average Views")
 
     freq_df = (

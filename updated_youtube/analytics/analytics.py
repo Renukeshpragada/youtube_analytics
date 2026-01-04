@@ -1,12 +1,22 @@
 import pandas as pd
+import mysql.connector
 
-def load_video_data_by_channel(conn, channel_id):
+def load_video_data_by_channel(channel_id):
+    conn = mysql.connector.connect(
+        host="localhost",
+        user="yt_user",
+        password="StrongPass@123",
+        database="youtube_analytics"
+    )
+
     query = """
         SELECT *
         FROM videos_detailed
         WHERE channel_id = %s
     """
+
     df = pd.read_sql(query, conn, params=(channel_id,))
+    conn.close()
 
     if df.empty:
         return df
@@ -23,6 +33,7 @@ def load_video_data_by_channel(conn, channel_id):
     ).replace([float("inf")], 0).fillna(0)
 
     return df
+
 
 def load_video_data(conn):
     df = pd.read_sql("SELECT * FROM videos_detailed", conn)
@@ -97,3 +108,51 @@ def best_upload_hour(df):
 
 def top_videos(df, n=10):
     return df.sort_values("views", ascending=False).head(n)
+
+
+def monthly_views_styled(df):
+    """Groups views by year and month and sorts them chronologically."""
+    # 1. Group by Year and Month
+    mv = df.groupby(["year", "month"]).agg({"views": "sum"}).reset_index()
+    
+    # 2. Create a sortable 'period' string (e.g., "2024-01")
+    mv["period"] = mv["year"].astype(str) + "-" + mv["month"].astype(str).str.zfill(2)
+    
+    # 3. Sort chronologically so the graph doesn't jump
+    mv = mv.sort_values("period")
+    return mv
+
+
+
+def load_video_data_for_ai(channel_id):
+    """
+    SAFE function for AI chatbot.
+    Uses its own DB connection to avoid unread result errors.
+    """
+
+    conn = mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="your_password",
+        database="your_db"
+    )
+
+    query = """
+        SELECT title, views, published_date, likes, comments
+        FROM videos_detailed
+        WHERE channel_id = %s
+    """
+
+    df = pd.read_sql(query, conn, params=(channel_id,))
+    conn.close()
+
+    if df.empty:
+        return df
+
+    df["published_date"] = pd.to_datetime(df["published_date"])
+
+    df["engagement_rate"] = (
+        (df["likes"] + df["comments"]) / df["views"]
+    ).replace([float("inf")], 0).fillna(0)
+
+    return df
