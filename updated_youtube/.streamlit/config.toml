@@ -1,0 +1,4 @@
+[theme]
+base="dark"
+backgroundColor="#04111d"
+secondaryBackgroundColor="#04111d" # Force this to match background

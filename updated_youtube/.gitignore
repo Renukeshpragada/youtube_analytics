@@ -1,5 +1,12 @@
-*.json
-updated_youtube/.streamlit/
+# Streamlit secrets
+.streamlit/secrets.toml
 
-password="StrongPass@123"
-database="youtube_analytics"
+# OAuth secrets
+client_secret.json
+
+# Environment files
+.env
+.env.*
+
+# OS junk
+.DS_Store
