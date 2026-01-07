@@ -1,6 +1,0 @@
-SELECT 
-    channel_name,
-    subscribers
-FROM channels
-ORDER BY subscribers DESC
-LIMIT 10;

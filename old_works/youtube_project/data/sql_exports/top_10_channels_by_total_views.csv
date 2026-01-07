@@ -1,6 +1,0 @@
-SELECT 
-    title,
-    views
-FROM videos
-ORDER BY views DESC
-LIMIT 10;

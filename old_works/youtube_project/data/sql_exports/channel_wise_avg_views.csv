@@ -1,8 +1,0 @@
-SELECT 
-    c.channel_name,
-    AVG(v.views) AS avg_views
-FROM channels c
-JOIN videos v 
-ON c.channel_id = v.channel_id
-GROUP BY c.channel_name
-ORDER BY avg_views DESC;

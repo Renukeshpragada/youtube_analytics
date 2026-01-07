@@ -1,8 +1,0 @@
-SELECT 
-    c.category,
-    AVG((v.likes + v.comments) / v.views) AS avg_engagement
-FROM channels c
-JOIN videos v 
-ON c.channel_id = v.channel_id
-WHERE v.views > 0
-GROUP BY c.category;

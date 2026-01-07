@@ -1,5 +1,0 @@
-streamlit
-pandas
-mysql-connector-python
-google-api-python-client
-isodate
