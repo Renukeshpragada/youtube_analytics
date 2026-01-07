@@ -5,8 +5,8 @@ def load_video_data_by_channel(channel_id):
     conn = mysql.connector.connect(
         host="localhost",
         user="yt_user",
-        password="xxxxxxxxxx",
-        database="xxxxxxxxxx"
+        password="StrongPass@123",
+        database="youtube_analytics"
     )
 
     query = """
@@ -133,8 +133,8 @@ def load_video_data_for_ai(channel_id):
     conn = mysql.connector.connect(
         host="localhost",
         user="root",
-        password="your_password",
-        database="your_db"
+        password="StrongPass@123",
+        database="youtube_analytics"
     )
 
     query = """
