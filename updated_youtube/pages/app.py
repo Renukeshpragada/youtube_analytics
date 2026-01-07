@@ -30,7 +30,7 @@ local_css("style.css")
 def get_connection():
     return mysql.connector.connect(
         host="localhost", user="yt_user", 
-        password="StrongPass@123", database="youtube_analytics"
+        password="xxxxxxxxxx", database="xxxxxxxxxx"
     )
 
 conn = get_connection()

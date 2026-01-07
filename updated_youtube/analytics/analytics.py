@@ -5,8 +5,8 @@ def load_video_data_by_channel(channel_id):
     conn = mysql.connector.connect(
         host="localhost",
         user="yt_user",
-        password="StrongPass@123",
-        database="youtube_analytics"
+        password="xxxxxxxxxx",
+        database="xxxxxxxxxx"
     )
 
     query = """

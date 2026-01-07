@@ -1,3 +1,5 @@
 *.json
 updated_youtube/.streamlit/
 
+password="StrongPass@123"
+database="youtube_analytics"
