@@ -37,11 +37,10 @@ conn = get_connection()
 
 @st.cache_data
 def load_channels(_conn):
-    # ✅ Fetch all columns so metadata like subscribers is available
+    # ✅ Fetch all columns so metaata like subscribers is available
     return pd.read_sql("SELECT * FROM channels_detailed", _conn)
 
 channels_df = load_channels(conn)
-
 # ==============================
 # 3. SIDEBAR & SEARCH
 # ==============================

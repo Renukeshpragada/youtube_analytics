@@ -7,7 +7,7 @@ from extraction.youtube_api import get_youtube_channel_info
 # ==============================
 st.set_page_config(page_title="Login | YouTube Analytics", layout="centered")
 
-# [YOUR CSS CODE - UNCHANGED]
+# [YOUR CSS CODE - UNCHANGED
 st.markdown("""
 <style>
 section[data-testid="stSidebar"] { display: none !important; }

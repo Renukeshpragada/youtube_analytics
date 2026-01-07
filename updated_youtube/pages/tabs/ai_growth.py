@@ -70,7 +70,7 @@ def render(df, channel_input):
     </script>
     """, unsafe_allow_html=True)
 
-    # --INPUT (FORM = FIX) -----
+    # --INPUT (FORM = FIX) ----
     with st.form("chat_form", clear_on_submit=True):
         col1, col2 = st.columns([8, 1])  # input-wier, button smaller
         with col1:

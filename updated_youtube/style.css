@@ -306,3 +306,19 @@ input {
 .st-bq {
     border-left-color: #4b5f7e;
 }
+.Comparision_button{
+    height: 0px;
+    width: 0px;
+    margin: 0px;
+    display:none;
+
+}
+.st-ae.st-af.st-bn.st-cg.st-ai.st-aj.st-bx.st-ep.st-f3.st-c9.st-do.st-c3.st-c5.st-c4.st-c6.st-ay.st-em.st-c7.st-ar.st-as.st-b6.st-b5.st-dk.st-dm.st-bt.st-dl{
+    border:none;
+    background-color:transparent;
+    height: 0px;
+    width: 0px;
+}
+.st-br {
+    border-bottom-color: #4b5f7e;
+}
