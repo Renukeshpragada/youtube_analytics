@@ -78,53 +78,101 @@ def render(df):
     st.markdown("### Estimated Earnings")
 
     # ------------------------------
-    # CHART (STABLE + CLEAN)
+    # CHART (COLORFUL & ATTRACTIVE)
     # ------------------------------
-    earnings_chart = (
-        alt.Chart(monthly_df)
-        .mark_area(
-            interpolate="monotone",
-            line={"color": "#1E90FF", "size": 3},
-            color=alt.Gradient(
-                gradient="linear",
-                stops=[
-                    alt.GradientStop(color="#1E90FF", offset=1),
-                    alt.GradientStop(color="rgba(30,144,255,0.05)", offset=0),
-                ],
-                x1=0, x2=0, y1=1, y2=0,
+    # Line chart
+    earnings_line = alt.Chart(monthly_df).mark_line(
+        point=True,
+        strokeWidth=4,
+        color='#FF0000',
+        interpolate='monotone'
+    ).encode(
+        x=alt.X(
+            "month:T",
+            title="Month",
+            axis=alt.Axis(
+                format="%b '%y",
+                labelColor="#9bbcd6",
+                grid=False,
+                labelAngle=-45
             ),
-        )
-        .encode(
-            x=alt.X(
-                "month:T",
-                title=None,
-                axis=alt.Axis(
-                    format="%b '%y",
-                    labelColor="#9bbcd6",
-                    grid=False,
-                ),
+        ),
+        y=alt.Y(
+            "earnings:Q",
+            title="Estimated Earnings ($)",
+            axis=alt.Axis(
+                format="$~s",
+                labelColor="#9bbcd6",
+                grid=True,
+                gridColor="#1c3d5a",
+                gridDash=[3, 3],
             ),
-            y=alt.Y(
-                "earnings:Q",
-                title=None,
-                axis=alt.Axis(
-                    format="$~s",
-                    labelColor="#9bbcd6",
-                    grid=True,
-                    gridColor="#1c3d5a",
-                    gridDash=[3, 3],
-                ),
-            ),
-            tooltip=[
-                alt.Tooltip("month:T", title="Month", format="%B %Y"),
-                alt.Tooltip("earnings:Q", title="Earnings", format="$,.2f"),
-            ],
-        )
-        .properties(height=400)
-        .configure_view(strokeOpacity=0)
+        ),
+        tooltip=[
+            alt.Tooltip("month:T", title="Month", format="%B %Y"),
+            alt.Tooltip("earnings:Q", title="Earnings", format="$,.2f"),
+        ],
     )
+    
+    # Area fill
+    earnings_area = alt.Chart(monthly_df).mark_area(
+        color=alt.Gradient(
+            gradient="linear",
+            stops=[
+                alt.GradientStop(color="rgba(255, 0, 0, 0.6)", offset=0),
+                alt.GradientStop(color="rgba(255, 0, 0, 0.1)", offset=1),
+            ],
+            x1=0, x2=0, y1=0, y2=1,
+        ),
+        interpolate='monotone'
+    ).encode(
+        x=alt.X("month:T"),
+        y=alt.Y("earnings:Q")
+    )
+    
+    earnings_chart = (earnings_area + earnings_line).resolve_scale().properties(height=450).configure_view(strokeOpacity=0).configure_axis(titleColor='#9bbcd6')
 
     st.altair_chart(earnings_chart, use_container_width=True)
+    
+    st.markdown("---")
+    
+    # ------------------------------
+    # EARNINGS BY YEAR PIE CHART
+    # ------------------------------
+    st.markdown("### 💰 Earnings Distribution by Year")
+    
+    yearly_earnings = monthly_df.copy()
+    yearly_earnings['year'] = pd.to_datetime(yearly_earnings['month']).dt.year
+    yearly_earnings_sum = yearly_earnings.groupby('year')['earnings'].sum().reset_index()
+    
+    col_pie, col_stats = st.columns([2, 1])
+    
+    with col_pie:
+        pie_chart = alt.Chart(yearly_earnings_sum).mark_arc(
+            innerRadius=60,
+            outerRadius=150
+        ).encode(
+            theta=alt.Theta('earnings:Q', stack=True),
+            color=alt.Color('year:O',
+                          scale=alt.Scale(scheme='reds'),
+                          legend=alt.Legend(title='Year', labelColor='#9bbcd6', titleColor='#9bbcd6')),
+            tooltip=[alt.Tooltip('year:O', title='Year'), alt.Tooltip('earnings:Q', title='Earnings', format='$,.2f')]
+        ).properties(height=400, width=400)
+        
+        st.altair_chart(pie_chart, use_container_width=True)
+    
+    with col_stats:
+        st.markdown("### 📊 Yearly Earnings")
+        total_earnings = yearly_earnings_sum['earnings'].sum()
+        for _, row in yearly_earnings_sum.iterrows():
+            pct = (row['earnings'] / total_earnings) * 100
+            st.markdown(f"""
+            <div class="year-stat-card">
+                <div class="year-stat-year">{int(row['year'])}</div>
+                <div class="year-stat-views">${row['earnings']:,.2f}</div>
+                <div class="year-stat-pct">{pct:.1f}%</div>
+            </div>
+            """, unsafe_allow_html=True)
 
     st.caption(
         f"Estimated revenue calculated using Earnings = (Total Views / 1,000) × RPM (${RPM})."
