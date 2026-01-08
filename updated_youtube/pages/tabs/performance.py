@@ -12,11 +12,11 @@ def render(df):
     mv = analytics.monthly_views_styled(df)
     
     view_chart = alt.Chart(mv).mark_area(
-        line={'color': '#1E90FF', 'size': 3}, 
+        line={'color': '#1E90FF', 'size': 2}, 
         color=alt.Gradient(
             gradient='linear',
-            stops=[alt.GradientStop(color='#1E90FF', offset=1),
-                   alt.GradientStop(color='rgba(30, 144, 255, 0.1)', offset=0)],
+            stops=[alt.GradientStop(color='rgba(20, 123, 255, 0.3)', offset=1),
+                   alt.GradientStop(color='rgba(30, 144, 255, 0.7)', offset=0)],
             x1=1, x2=1, y1=1, y2=0
         )
     ).encode(
@@ -29,51 +29,156 @@ def render(df):
 
     st.markdown("---")
 
-    # ==============================
+    # =============================
     # 2. UPLOAD FREQUENCY (Solid Bar Chart - No Overlapping Lines)
     # ==============================
     st.markdown("### Monthly Upload Frequency")
     
-    # We group by month_name and count video IDs
-    freq_df = df.groupby(['year', 'month_name', 'month']).size().reset_index(name='uploads')
+    # ==============================
+# DATA (UNCHANGED)
+# ==============================
+    freq_df = df.groupby(
+        ['year', 'month_name', 'month']
+    ).size().reset_index(name='uploads')
+
     freq_df = freq_df.sort_values(['year', 'month'])
 
+# Create a readable label to avoid overlap across years
+    freq_df['month_label'] = freq_df['month_name'] + " " + freq_df['year'].astype(str)
+
+# ==============================
+# COLORFUL BAR CHART
+# ==============================
     bar_chart = alt.Chart(freq_df).mark_bar(
-        color='#4cc3ff',
-        cornerRadiusTopLeft=8,  # Smooth corners like Image 2
+        cornerRadiusTopLeft=8,
         cornerRadiusTopRight=8,
-        opacity=0.9
     ).encode(
-        x=alt.X('month_name:N', sort=alt.SortField('month'), title=None, axis=alt.Axis(labelAngle=0)),
-        y=alt.Y('uploads:Q', title='No. of Uploads', axis=alt.Axis(grid=True, gridColor='#1c3d5a')),
-        tooltip=['month_name', 'uploads']
-    ).properties(height=300).configure_view(strokeOpacity=0)
+        x=alt.X(
+            'month_label:N',
+            sort=alt.SortField(field='year', order='ascending'),
+            title=None,
+            axis=alt.Axis(
+                labelAngle=-45,
+                labelColor='#9bbcd6'
+            )
+        ),
+        y=alt.Y(
+            'uploads:Q',
+            title='No. of Uploads',
+            axis=alt.Axis(
+                grid=True,
+                gridColor='#1c3d5a',
+                labelColor='#9bbcd6'
+            )
+        ),
+        color=alt.Color(
+            'uploads:Q',
+            scale=alt.Scale(
+                scheme='turbo'  # 🔥 colorful & expressive
+            ),
+            legend=alt.Legend(
+                title='Upload Intensity',
+                labelColor='#9bbcd6',
+                titleColor='#9bbcd6'
+            )
+        ),
+        tooltip=[
+            alt.Tooltip('month_name:N', title='Month'),
+            alt.Tooltip('year:O', title='Year'),
+            alt.Tooltip('uploads:Q', title='Uploads')
+        ]
+    ).properties(
+        height=380
+    ).configure_view(
+        strokeOpacity=0
+    ).configure_axis(
+        titleColor='#9bbcd6'
+    )
 
     st.altair_chart(bar_chart, use_container_width=True)
 
-    st.markdown("---")
 
-    # ==============================
+    # =============================
     # 3. AVERAGE VIEWS PER MONTH (Matching Area Chart)
     # ==============================
     st.markdown("### Average Views per Video")
-    
-    # Aggregate to get average views per month
-    avg_v_df = df.groupby(['year', 'month_name', 'month'])['views'].mean().reset_index(name='avg_views')
+
+# ==============================
+# DATA (UNCHANGED)
+# ==============================
+    avg_v_df = df.groupby(
+        ['year', 'month_name', 'month']
+    )['views'].mean().reset_index(name='avg_views')
+
     avg_v_df = avg_v_df.sort_values(['year', 'month'])
 
-    avg_chart = alt.Chart(avg_v_df).mark_area(
-        line={'color': '#4cc3ff', 'size': 3},
-        color=alt.Gradient(
-            gradient='linear',
-            stops=[alt.GradientStop(color='rgba(76, 195, 255, 0.4)', offset=1),
-                   alt.GradientStop(color='rgba(76, 195, 255, 0)', offset=0)],
-            x1=1, x2=1, y1=1, y2=0
-        )
+# Create label to avoid month overlap across years
+    avg_v_df['month_label'] = avg_v_df['month_name'] + " " + avg_v_df['year'].astype(str)
+
+# ==============================
+# LINE (PRIMARY FOCUS)
+# ==============================
+    avg_line = alt.Chart(avg_v_df).mark_line(
+        point=True,
+        strokeWidth=4,
+        color="#4cc3ff",
+        interpolate="monotone"
     ).encode(
-        x=alt.X('month_name:N', sort=alt.SortField('month'), title=None, axis=alt.Axis(labelAngle=0)),
-        y=alt.Y('avg_views:Q', title='Avg. Views', axis=alt.Axis(grid=True, gridColor='#1c3d5a')),
-        tooltip=['month_name', alt.Tooltip('avg_views', format=',')]
-    ).properties(height=300).configure_view(strokeOpacity=0)
+        x=alt.X(
+            'month_label:N',
+            title=None,
+            axis=alt.Axis(
+                labelAngle=-45,
+                labelColor='#9bbcd6'
+            )
+        ),
+        y=alt.Y(
+            'avg_views:Q',
+            title='Avg. Views',
+            axis=alt.Axis(
+                format='~s',
+                grid=True,
+                gridColor='#1c3d5a',
+                gridDash=[3, 3],
+                labelColor='#9bbcd6'
+            )
+        ),
+        tooltip=[
+            alt.Tooltip('month_name:N', title='Month'),
+            alt.Tooltip('year:O', title='Year'),
+            alt.Tooltip('avg_views:Q', title='Avg Views', format=',')
+        ]
+    )
+
+# ==============================
+# AREA (SUBTLE DEPTH)
+# ==============================
+    avg_area = alt.Chart(avg_v_df).mark_area(
+    interpolate='monotone',
+    color=alt.Gradient(
+        gradient='linear',
+        stops=[
+            alt.GradientStop(color='rgba(76, 195, 255, 0.45)', offset=0),
+            alt.GradientStop(color='rgba(76, 195, 255, 0.05)', offset=1),
+        ],
+        x1=0, x2=0, y1=0, y2=1
+    )
+    ).encode(
+        x='month_label:N',
+        y='avg_views:Q'
+    )
+
+# ==============================
+# COMBINED CHART
+# ==============================
+    avg_chart = (
+        avg_area + avg_line
+    ).properties(
+        height=420
+    ).configure_view(
+        strokeOpacity=0
+    ).configure_axis(
+        titleColor='#9bbcd6'
+    )
 
     st.altair_chart(avg_chart, use_container_width=True)

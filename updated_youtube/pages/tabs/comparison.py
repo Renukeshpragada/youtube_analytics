@@ -11,10 +11,10 @@ def render(channel_input, channels_df, conn):
     </div>
     """, unsafe_allow_html=True)
 
-    # Get the full list of channel names from the database
+    # Get the full list of cannel names from the database
     channel_names = channels_df["channel_name"].tolist()
 
-    # Logic to find the index of the currently searched channel for Dropdown 1
+    # Logic to find tindex of the currently searched channel for Dropdown 1
     try:
         default_ch1_index = channel_names.index(channel_input)
     except ValueError:
@@ -41,9 +41,12 @@ def render(channel_input, channels_df, conn):
         )
 
     # CHECK: Only show comparison if a second channel is selected
-    if ch2_name is None:
+    
+
+    if ch2_name is None or ch1_name is None:
         st.markdown("---")
         st.info("💡 **Select a second channel** from the dropdown above to view side-by-side metrics and engagement trends.")
+        return
     else:
         # Convert names → IDs
         ch1_id = channels_df.loc[
@@ -116,42 +119,7 @@ def render(channel_input, channels_df, conn):
         st.altair_chart(comparison_chart, use_container_width=True)
         
         # Add bar chart comparison
-        st.markdown("### 📈 Side-by-Side Metrics Comparison")
         
-        metrics_data = pd.DataFrame({
-            'Metric': ['Avg Views', 'Avg Engagement', 'Total Videos'],
-            ch1_name: [
-                int(df1['views'].mean()),
-                round(df1['engagement_rate'].mean(), 4),
-                len(df1)
-            ],
-            ch2_name: [
-                int(df2['views'].mean()),
-                round(df2['engagement_rate'].mean(), 4),
-                len(df2)
-            ]
-        })
-        
-        # Normalize for comparison
-        metrics_long = pd.melt(metrics_data, id_vars=['Metric'], value_vars=[ch1_name, ch2_name], 
-                              var_name='Channel', value_name='Value')
-        
-        bar_comparison = alt.Chart(metrics_long).mark_bar(
-            cornerRadiusTopLeft=6,
-            cornerRadiusTopRight=6
-        ).encode(
-            x=alt.X('Metric:N', title='Metric', axis=alt.Axis(labelAngle=0, labelColor='#9bbcd6')),
-            y=alt.Y('Value:Q', title='Value', axis=alt.Axis(labelColor='#9bbcd6', gridColor='#1c3d5a')),
-            color=alt.Color('Channel:N',
-                          scale=alt.Scale(domain=[ch1_name, ch2_name], range=['#FF0000', '#4cc3ff']),
-                          legend=alt.Legend(title='Channel', labelColor='#9bbcd6', titleColor='#9bbcd6')),
-            column=alt.Column('Metric:N', spacing=20),
-            tooltip=['Channel', 'Metric', alt.Tooltip('Value:Q', format='.2f')]
-        ).properties(width=150, height=300).configure_view(strokeOpacity=0).configure_axis(titleColor='#9bbcd6')
-        
-        st.altair_chart(bar_comparison, use_container_width=True)
-
-        st.markdown("---")
 
         # Determine winner
         avg1 = df1["engagement_rate"].mean()
@@ -161,3 +129,95 @@ def render(channel_input, channels_df, conn):
         st.success(
             f"🏆 Overall Insight: **{winner}** shows stronger average engagement between these two channels."
         )
+
+
+
+        st.markdown("### 📊 Average Views per Video")
+
+    avg_views_df = pd.DataFrame({
+        "Channel": [ch1_name, ch2_name],
+        "Avg Views": [df1['views'].mean(), df2['views'].mean()]
+    })
+
+    avg_views_chart = alt.Chart(avg_views_df).mark_bar(
+        cornerRadiusTopLeft=8,
+        cornerRadiusTopRight=8
+    ).encode(
+        x=alt.X('Channel:N', title=None, axis=alt.Axis(labelColor='#9bbcd6')),
+        y=alt.Y(
+            'Avg Views:Q',
+            title='Average Views',
+            axis=alt.Axis(format='~s', grid=True, gridColor='#1c3d5a')
+        ),
+        color=alt.Color(
+            'Channel:N',
+            scale=alt.Scale(range=['#4cc3ff', '#ff6b6b']),
+            legend=None
+        ),
+        tooltip=[
+            alt.Tooltip('Channel:N'),
+            alt.Tooltip('Avg Views:Q', format=',')
+        ]
+    ).properties(height=320).configure_view(strokeOpacity=0)
+
+    st.altair_chart(avg_views_chart, use_container_width=True)
+
+    st.markdown("### 📅 Upload Frequency Comparison")
+
+    freq_a = df1.groupby(['year', 'month']).size().reset_index(name='uploads')
+    freq_b = df2.groupby(['year', 'month']).size().reset_index(name='uploads')
+
+    freq_a['Channel'] = ch1_name
+    freq_b['Channel'] = ch2_name
+
+    freq_df = pd.concat([freq_a, freq_b])
+
+    freq_chart = alt.Chart(freq_df).mark_line(
+        point=True,
+        strokeWidth=3
+    ).encode(
+        x=alt.X('month:O', title='Month'),
+        y=alt.Y(
+            'uploads:Q',
+            title='Uploads',
+            axis=alt.Axis(grid=True, gridColor='#1c3d5a')
+        ),
+        color=alt.Color(
+            'Channel:N',
+            scale=alt.Scale(range=['#4cc3ff', '#ff6b6b']),
+            legend=alt.Legend(labelColor='#9bbcd6')
+        ),
+        tooltip=['Channel', 'uploads']
+    ).properties(height=350).configure_view(strokeOpacity=0)
+
+    st.altair_chart(freq_chart, use_container_width=True)
+
+    st.markdown("### 📈 Views Trend Comparison")
+
+    trend_a = df1.groupby(['year', 'month'])['views'].mean().reset_index()
+    trend_b = df2.groupby(['year', 'month'])['views'].mean().reset_index()
+
+    trend_a['Channel'] = ch1_name
+    trend_b['Channel'] = ch2_name
+
+    trend_df = pd.concat([trend_a, trend_b])
+
+    trend_chart = alt.Chart(trend_df).mark_line(
+        strokeWidth=3,
+        interpolate='monotone'
+    ).encode(
+        x=alt.X('month:O', title='Month'),
+        y=alt.Y(
+            'views:Q',
+            title='Average Views',
+            axis=alt.Axis(format='~s', grid=True, gridColor='#1c3d5a')
+        ),
+        color=alt.Color(
+            'Channel:N',
+            scale=alt.Scale(range=['#4cc3ff', '#ff6b6b']),
+            legend=alt.Legend(labelColor='#9bbcd6')
+        ),
+        tooltip=['Channel', alt.Tooltip('views:Q', format=',')]
+    ).properties(height=380).configure_view(strokeOpacity=0)
+
+    st.altair_chart(trend_chart, use_container_width=True)

@@ -1,266 +1,219 @@
 import streamlit as st
 from authlib.integrations.requests_client import OAuth2Session
-from extraction.youtube_api import get_youtube_channel_info
+
+# Note: Extraction logic for channel info must exist in your directory structure
+try:
+    from extraction.youtube_api import get_youtube_channel_info
+except ImportError:
+    # Fallback placeholder if file is not found
+    def get_youtube_channel_info(token): return {}
 
 # ==============================
-# PAGE CONFIG
+# 1. PAGE CONFIG & GOOGLE OAUTH CONFIG
 # ==============================
 st.set_page_config(page_title="YTAI Analytics | Login", layout="centered")
 
-# ==============================
-# CUSTOM CSS
-# ==============================
-st.markdown("""
-<style>
-section[data-testid="stSidebar"] { display: none !important; }
-.stApp { 
-    background: radial-gradient(circle at bottom left, #0a2a43 35%, #04111d 70%, #000000 80%);
-    color: #eaeaea; 
-    font-family: 'Segoe UI', sans-serif; 
-}
-
-.auth-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 40px;
-    margin-bottom: 20px;
-}
-
-.login-btn-header {
-    background: linear-gradient(135deg, #FF0000, #CC0000);
-    color: white;
-    padding: 10px 24px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 600;
-    transition: transform 0.2s, box-shadow 0.2s;
-    box-shadow: 0 4px 15px rgba(255, 0, 0, 0.3);
-}
-
-.auth-main-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 70vh;
-    padding: 40px 20px;
-}
-
-.app-logo {
-    width: 80px;
-    height: 80px;
-    background: linear-gradient(135deg, #FF0000, #CC0000);
-    border-radius: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 20px;
-    box-shadow: 0 8px 25px rgba(255, 0, 0, 0.4);
-}
-
-.app-logo-icon {
-    font-size: 48px;
-    color: white;
-}
-
-.app-title {
-    font-size: 56px;
-    font-weight: 700;
-    color: #ffffff;
-    margin-bottom: 12px;
-    text-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
-}
-
-.app-subtitle {
-    font-size: 20px;
-    color: #9bbcd6;
-    margin-bottom: 50px;
-    text-align: center;
-}
-
-.analyze-section {
-    background: linear-gradient(145deg, #0b253a, #081a2a);
-    padding: 35px;
-    border-radius: 16px;
-    width: 100%;
-    max-width: 600px;
-    margin-bottom: 30px;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.divider {
-    display: flex;
-    align-items: center;
-    text-align: center;
-    margin: 30px 0;
-    color: #9bbcd6;
-    width: 100%;
-    max-width: 600px;
-}
-
-.divider::before,
-.divider::after {
-    content: '';
-    flex: 1;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.divider span {
-    padding: 0 15px;
-    font-size: 14px;
-}
-
-.google-login-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    width: 100%;
-    max-width: 600px;
-    height: 52px;
-    background-color: #ffffff;
-    color: #3c4043;
-    font-family: 'Roboto', 'Segoe UI', sans-serif;
-    font-size: 18px;
-    font-weight: 500;
-    border: 1px solid #dadce0;
-    border-radius: 10px;
-    text-decoration: none;
-    cursor: pointer;
-    transition: background-color 0.2s ease, box-shadow 0.2s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.google-login-btn:hover {
-    background-color: #f7f8f8;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.google-login-btn img {
-    width: 24px;
-    height: 24px;
-}
-
-.welcome-back {
-    text-align: center;
-    margin-top: 30px;
-    color: #ffffff;
-    font-size: 18px;
-}
-
-.dashboard-link {
-    color: #FF0000;
-    text-decoration: none;
-    font-weight: 600;
-    margin-top: 10px;
-    display: inline-block;
-    transition: color 0.2s;
-}
-
-.dashboard-link:hover {
-    color: #FF4444;
-}
-</style>
-""", unsafe_allow_html=True)
-
-# ==============================
-# GOOGLE OAUTH CONFIG
-# ==============================
-CLIENT_ID = st.secrets["google"]["client_id"]
-CLIENT_SECRET = st.secrets["google"]["client_secret"]
-REDIRECT_URI = st.secrets["google"]["redirect_uri"]
+# Retrieve Google credentials from streamlit secrets
+# These must be set in your .streamlit/secrets.toml
+CLIENT_ID = st.secrets.get("google", {}).get("client_id", "")
+CLIENT_SECRET = st.secrets.get("google", {}).get("client_secret", "")
+REDIRECT_URI = st.secrets.get("google", {}).get("redirect_uri", "")
 
 AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 TOKEN_URL = "https://oauth2.googleapis.com/token"
 USERINFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo"
-
 SCOPES = ["openid", "email", "profile", "https://www.googleapis.com/auth/youtube.readonly"]
 
+# Initialize OAuth Session
+oauth = OAuth2Session(client_id=CLIENT_ID, client_secret=CLIENT_SECRET, scope=SCOPES, redirect_uri=REDIRECT_URI)
+authorization_url, _ = oauth.create_authorization_url(AUTH_URL, access_type="offline")
+
 # ==============================
-# HEADER WITH LOGIN BUTTON
+# 2. FINAL CLEAN CSS
 # ==============================
 st.markdown("""
-<div class="auth-header">
-    <div style="font-size: 24px; font-weight: 700; color: #ffffff;">YTAI Analytics</div>
-    <div style="color: #9bbcd6;">Already have an account?</div>
+<style>
+/* Global Setup */
+section[data-testid="stSidebar"] { display: none !important; }
+.stApp { 
+    background: radial-gradient(circle at bottom left, #071726 30%, #04111d 65%, #000000 85%);
+    color: #eaeaea; 
+}
+
+/* Hero Section / Title Card */
+.hero-card {
+    width: 100%; max-width: 800px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    border-radius: 28px; padding: 60px 40px; text-align: center;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+    
+    margin: 40px auto 60px auto; /* 60px bottom margin for spacing to search bar */
+}
+.app-logo {
+    width: 80px; height: 80px; border-radius: 20px; 
+    background: linear-gradient(135deg,#ff3b1f 0%, #ff6a3d 60%);
+    display: flex; align-items: center; justify-content: center; margin: 0 auto 20px auto;
+}
+.app-title { font-size: 60px; font-weight: 800; color: white; margin-bottom: 5px; }
+.app-tagline { font-size: 18px; color: #bcd3e0; opacity: 0.8; }
+
+/* THE PILL SEARCH FIELD (Professional Match) */
+div[data-testid="stForm"] {
+    background: linear-gradient(90deg, rgba(6,30,60,0.6), rgba(8,45,85,0.6)) !important;
+    border: 1px solid rgba(40,80,140,0.12) !important;
+    border-radius: 100px !important;
+    padding: 6px 6px 6px 22px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    max-width: 700px !important;
+    margin: 0 auto !important;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.45) inset, 0 8px 30px rgba(0,0,0,0.35) !important;
+}
+
+/* Hide Streamlit label spacers completely */
+div[data-testid="stForm"] label { display: none !important; height: 0 !important; }
+div[data-testid="column"] { padding: 0 !important; flex: 1 1 auto !important; margin: 0 !important; }
+div[data-testid="stVerticalBlock"] { gap: 0 !important; }
+
+/* Text Input Styling */
+.stTextInput input {
+    /* subtle filled background so the placeholder doesn't sit on pure black */
+    background:inherit !important;
+    border: linear-gradient(90deg, rgba(6, 30, 60, 0.6), rgba(8, 45, 85, 0.6)) !important;
+    width:1000px;
+    box-shadow: none !important;
+    color: white !important;
+    font-size: 22px !important;
+    padding: 9px 12px !important;
+    border-radius: 8px !important;
+}
+
+/* Placeholder styling (cross-browser) */
+.stTextInput input::placeholder { color: rgba(255,255,255,0.87) !important; opacity: 1;
+           
+             }
+.stTextInput input::-webkit-input-placeholder { color: rgba(255,255,255,0.55) !important; }
+.stTextInput input:-ms-input-placeholder { color: rgba(255,255,255,0.55) !important; }
+.stTextInput input::-ms-input-placeholder { color: rgba(255,255,255,0.55) !important; }
+
+/* THE BUTTON: BLUE GRADIENT FIX */
+button[kind="primaryFormSubmit"], 
+button[data-testid="stBaseButton-secondaryFormSubmit"] {
+        /* Updated gradient: teal → blue for clearer, fresher contrast */
+        background: linear-gradient(90deg, #0ecff0, #063562);
+            margin-left:14px;
+    color: white !important;
+    border: 0px solid rgba(255,255,255,0.04) !important;
+    
+    border-radius: 100px !important;
+    padding: 2px 33px !important;
+    font-weight: 700 !important;
+    height: 44px !important;
+    transition: all 0.22s ease-in-out !important;
+    box-shadow: 0 8px 24px rgba(6,70,140,0.18) !important;
+}
+button:hover { 
+    transform: translateY(-1px); 
+    opacity: 0.9;
+    box-shadow: 0 0 20px rgba(30, 144, 255, 0.4) !important;
+}
+
+/* Divider & Login Elements */
+.divider { display:flex; align-items:center; margin: 40px auto; max-width: 550px; color:#555; font-size: 12px; font-weight: bold; }
+.divider::before, .divider::after { content:''; flex:1; height:1px; background: #333; margin: 0 15px; }
+
+.google-login-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 12px;
+    width: 480px; height: 50px; background-color: #ffffff; color: #3c4043;
+    font-weight: 700; border-radius: 100px; text-decoration: none; 
+    font-size:19px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: 0.2s;
+}
+.google-login-btn:hover { background: #f1f1f1; transform: translateY(-1px); }
+</style>
+""", unsafe_allow_html=True)
+
+# ==============================
+# 3. PAGE CONTENT & UI
+# ==============================
+
+# HERO TITLE SECTION
+st.markdown("""
+<div class="hero-card">
+    <div class="app-logo"><span style="color:white; font-size:38px; font-weight:bold;">▶</span></div>
+    <div class="app-title">YouTube Analytics</div>
+    <div class="app-tagline">Deep dive into performance metrics and channel growth</div>
 </div>
 """, unsafe_allow_html=True)
 
-# ==============================
-# MAIN CONTENT
-# ==============================
-st.markdown("""
-<div class="auth-main-container">
-    <div class="app-logo">
-        <div class="app-logo-icon">▶</div>
-    </div>
-    <div class="app-title">YTAI Analytics</div>
-    <div class="app-subtitle">Unlock deep insights into any YouTube Channel instantly.</div>
-</div>
-""", unsafe_allow_html=True)
+# ANALYZE PILL FORM
+with st.form("analyze_channel_form", clear_on_submit=False):
+    # Split the row: 4 parts for input, 1 part for button
+    col_input, col_btn = st.columns([4, 1.2])
+    
+    with col_input:
+        channel_input = st.text_input(
+            "label_not_visible", 
+            placeholder="Enter the channel name.....", 
+            label_visibility="collapsed"
+        )
+    
+    with col_btn:
+        submitted = st.form_submit_button("Analyze")
 
-# ==============================
-# ANALYZE SECTION
-# ==============================
-st.markdown("""
-<div class="analyze-section">
-""", unsafe_allow_html=True)
-
-with st.form("analyze_form", clear_on_submit=False):
-    channel_input = st.text_input(
-        "Enter YouTube Channel Name or ID",
-        placeholder="Paste YouTube Channel ID here...",
-        key="channel_input_auth"
-    )
-    analyze_submitted = st.form_submit_button("Analyze", use_container_width=True)
-
-st.markdown("</div>", unsafe_allow_html=True)
-
-if analyze_submitted and channel_input.strip():
+# Search Field Functionality
+if submitted and channel_input.strip():
     st.session_state["authenticated"] = True
     st.session_state["pending_channel"] = channel_input.strip()
+    st.info(f"Checking access for: {channel_input}")
     st.switch_page("pages/app.py")
 
-# ==============================
-# OAUTH SETUP
-# ==============================
-oauth = OAuth2Session(client_id=CLIENT_ID, client_secret=CLIENT_SECRET, scope=SCOPES, redirect_uri=REDIRECT_URI)
-authorization_url, state = oauth.create_authorization_url(AUTH_URL, access_type="offline")
-
-# ==============================
-# DIVIDER AND GOOGLE LOGIN
-# ==============================
-st.markdown("""
-<div class="divider">
-    <span>OR</span>
-</div>
-""", unsafe_allow_html=True)
+# AUTH SECTION (GOOGLE LOGIN)
+st.markdown('<div class="divider">OR</div>', unsafe_allow_html=True)
 
 st.markdown(f"""
-<div style="width: 100%; max-width: 600px; margin: 0 auto;">
+<div style="text-align: center;">
     <a class="google-login-btn" href="{authorization_url}">
-        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" />
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" height="20" />
         Continue with Google
     </a>
 </div>
 """, unsafe_allow_html=True)
 
 # ==============================
-# HANDLE OAUTH REDIRECT + AUTO CHANNEL FETCH
+# 4. HANDLE OAUTH REDIRECT LOGIC
 # ==============================
+# Checks for the URL 'code' parameter after Google Redirect
 query_params = st.query_params
 if "code" in query_params:
-    token = oauth.fetch_token(TOKEN_URL, code=query_params["code"])
-    user_info = oauth.get(USERINFO_URL).json()
-    
-    # FETCH YOUTUBE CHANNEL AUTOMATICALLY
-    yt_info = get_youtube_channel_info(token['access_token'])
+    try:
+        token = oauth.fetch_token(TOKEN_URL, code=query_params["code"])
+        user_info = oauth.get(USERINFO_URL).json()
+        
+        # Get extra YT details via the imported function
+        yt_info = get_youtube_channel_info(token['access_token'])
 
-    st.session_state["authenticated"] = True
-    st.session_state["user"] = user_info
-    st.session_state["user_yt_channel"] = yt_info
-    
-    st.success(f"Welcome {user_info['name']} 👋")
-    st.switch_page("pages/app.py")
+        # Store user state
+        # Store auth state
+        st.session_state["authenticated"] = True
+        st.session_state["user"] = user_info
+
+# Store user's own YouTube channel (identity-linked)
+        st.session_state["user_yt_channel"] = yt_info
+
+# 🔑 IMPORTANT: sync with analytics state
+        if yt_info and yt_info.get("channel_name"):
+            st.session_state["user_channel"] = yt_info["channel_name"]
+
+    # Set default analytics channel ONLY if user
+    # has not already been analyzing something
+            if not st.session_state.get("search_value"):
+                st.session_state["search_value"] = yt_info["channel_name"]
+
+        st.success(f"Signed in as {user_info.get('name', 'User')}")
+        st.switch_page("pages/app.py")
+
+    except Exception as e:
+        st.error(f"Login failed: {e}")

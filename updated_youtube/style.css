@@ -1,19 +1,13 @@
-/* =========================================
-   1. GLOBAL & DASHBOARD THEME
-   ========================================= */
 section[data-testid="stSidebar"] { display: none !important; }
-
 .stApp {
     background: radial-gradient(circle at bottom left, #0a2a43 35%, #04111d 70%, #000000 80%);
     color: #eaeaea;
     font-family: 'Segoe UI', sans-serif;
 }
-
 h1, h2, h3, h4 { color: #CCCCCC; font-weight: 600; margin-bottom: 10px;}
 
 p { color: #9bbcd6; font-size: 17px; line-height: 1.6; }
 
-/* Metric Cards (Image 2 style) */
 .overview-card {
     background-color: #0b111a;
     border: 1px solid #1c2b3d;
@@ -31,19 +25,16 @@ p { color: #9bbcd6; font-size: 17px; line-height: 1.6; }
 .carousel-wrapper {
     position: relative;
     padding: 20px 0;
-    margin-top: -10px; /* Reduces the gap at the top */
+    margin-top: -10px;
 }
-/* Ensure the background of charts matches the dash */
 .stVegaLiteChart {
     background-color: transparent !important;
 }
 
-/* Force chart labels to match your blue/gray text theme */
 [data-testid="stVegaLiteChart"] text {
     fill: #9bbcd6 !important;
     font-family: 'Segoe UI', sans-serif !important;
 }
-/* Center the buttons vertically and make them "Cement" color */
 div[data-testid="column"]:first-child button, 
 div[data-testid="column"]:last-child button {
     background-color: #e0e0e0 !important; /* Cement Color */
@@ -70,12 +61,36 @@ div[data-testid="stHorizontalBlock"]:hover button { opacity: 1; }
     background-color: #161d27;
     border-radius: 20px !important; /* Larger rounded corner as requested */
     overflow: hidden;
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     border: 1px solid #232d3b;
     cursor: pointer;
     text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    height: 280px; /* fixed card height so all cards match */
 }
-.video-card:hover { transform: scale(1.05); }
+.video-card:hover { transform: translateY(-6px) scale(1.02); }
+
+/* Thumbnail image: fixed area and cover scaling to keep uniform sizes */
+.video-card img {
+    width: 100%;
+    height: 160px; /* fixed thumbnail height */
+    object-fit: cover;
+    display: block;
+}
+
+.video-card > div {
+    padding: 12px 15px !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex: 1 1 auto;
+}
+
+/* Ensure title area truncates consistently */
+.video-card .title {
+    color: white; font-size:14px; font-weight:600; height:40px; overflow:hidden;
+}
 
 /* Stats area inside card */
 .video-stats { display: flex; justify-content: space-between; align-items: center; color: #9bbcd6; font-size: 12px; padding-top: 5px; }
@@ -96,12 +111,7 @@ tbody tr td {
 }
 [data-testid="stDataFrame"] tr:nth-child(even) { background-color: transparent !important; }
 
-/* =========================================
-   4. SYSTEM ELEMENTS (INPUTS & ALERTS)
-   ========================================= */
-input, div[data-baseweb="select"] > div { 
-    background-color: #081a2a !important; color: #ffffff !important; 
-}
+
 .custom-alert {
     background-color: #102437 !important; color: #FFC857 !important;
     padding: 15px; border-radius: 10px; border: 1px solid rgba(255, 200, 87, 0.2);
@@ -240,24 +250,27 @@ input, div[data-baseweb="select"] > div {
 
 /* INPUT */
 input {
-    background: transparent !important;
-    color: white !important;
-    border: 1px solid #334155 !important;
+    background-color: rgba(255,255,255,0.02) !important; /* subtle filled background so placeholder sits 'in background' */
+    color: #ffffff !important;
+    border: 1px solid rgba(77,115,142,0.35) !important;
     border-radius: 10px !important;
-    width:80px;
+    width: 80px;
     align-items: center;
-    height:38px;
-}
-.st-emotion-cache-zuyloh {
-    margin-left: 330px;
-    width: 666px;
-    height:80px;
+    height: 38px;
+    padding: 6px 10px;
 }
 
-.st-emotion-cache-8atqhb{
-    margin-top: 0px;
-}
+/* Placeholder styling (cross-browser) — make it subdued and clearly background-level */
+input::placeholder { color: rgba(255,255,255,0.45) !important; opacity: 1; }
+input::-webkit-input-placeholder { color: rgba(255,255,255,0.45) !important; }
+input:-ms-input-placeholder { color: rgba(255,255,255,0.45) !important; }
+input::-ms-input-placeholder { color: rgba(255,255,255,0.45) !important; }
 
+/* Button border: subtle, consistent with theme */
+button, .stButton>button, input[type="button"], input[type="submit"] {
+    border: 1px solid rgba(255,255,255,0.08) !important;
+    border-radius: 8px !important;
+}
 
 .chat-outer {
     max-height: 450px;              /* FIXED SIZE — change if needed */
@@ -276,52 +289,6 @@ input {
     /* lock size */
 }
 
-.st-emotion-cache-v4uj3b{
-   margin-top: 90px;
-}
-.st-emotion-cache-v4uj3b.e1q4kxr47{
-    margin-top:0px;
-}
-
-
-.st-ae.st-af.st-bp.st-ci.st-ai.st-aj.st-bz.st-ep.st-f3.st-cb.st-do.st-c5.st-c7.st-c6.st-c8.st-ay.st-em.st-c9.st-ar.st-as.st-b6.st-b5.st-dk.st-dm.st-bv.st-dl
-{
-    border:none;
-    background-color:transparent;
-    height: 0px;
-    width: 0px;
-    
-}
-
-.st-bt {
-    border-bottom-color: #4b5f7e;
-}
-
-.st-bs {
-    border-top-color: #4b5f7e;
-}
-.st-br {
-    border-right-color: #4b5f7e;
-}
-.st-bq {
-    border-left-color: #4b5f7e;
-}
-.Comparision_button{
-    height: 0px;
-    width: 0px;
-    margin: 0px;
-    display:none;
-
-}
-.st-ae.st-af.st-bn.st-cg.st-ai.st-aj.st-bx.st-ep.st-f3.st-c9.st-do.st-c3.st-c5.st-c4.st-c6.st-ay.st-em.st-c7.st-ar.st-as.st-b6.st-b5.st-dk.st-dm.st-bt.st-dl{
-    border:none;
-    background-color:transparent;
-    height: 0px;
-    width: 0px;
-}
-.st-br {
-    border-bottom-color: #4b5f7e;
-}
 
 /* =========================================
    SECTION HEADERS
@@ -421,3 +388,197 @@ input {
     color: #9bbcd6;
     font-size: 14px;
 }
+
+.header-logout-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(6,70,140,0.28); }
+
+/* Tabs container styling: remove box and add spacing between tabs */
+.tabs-container {
+    max-width: 1200px;
+    margin: 18px auto 14px auto;
+    padding: 0 18px;
+    box-sizing: border-box;
+}
+
+/* Make the tab container inherit the app background so it blends in */
+.tabs-container { background: inherit !important; }
+
+/* Streamlit typically renders tabs with role attributes; target them inside our wrapper */
+.tabs-bar {
+    display: flex;
+    gap: 12px; /* space between custom tab buttons */
+    align-items: center;
+    background: inherit !important;
+    padding: 6px 0 0 0 !important;
+}
+
+.tab-btn {
+    margin: 0 !important;
+    padding: 8px 16px !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    color: #cbdbe8 !important;
+    border: 1px solid transparent !important;
+    font-weight: 700 !important;
+    cursor: pointer;
+}
+
+.tab-btn[aria-selected="true"] {
+    background: linear-gradient(90deg, rgba(6,30,60,0.8), rgba(8,45,85,0.8)) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(77,115,142,0.25) !important;
+    box-shadow: 0 6px 18px rgba(2,8,23,0.5) !important;
+}
+
+/* Keep old streamlit-targeted rules but make them inherit as well */
+.tabs-container [role="tablist"] {
+    background: transparent !important;
+    border: none !important;
+    padding: 6px 0 0 0 !important;
+}
+
+.tabs-container [role="tablist"] button {
+    margin-right: 10px !important;
+    padding: 8px 14px !important;
+    border-radius: 8px !important;
+    background: transparent !important;
+    color: #cbdbe8 !important;
+    border: 1px solid transparent !important;
+    font-weight: 700 !important;
+}
+
+.tabs-container [role="tablist"] button[aria-selected="true"] {
+    background: linear-gradient(90deg, rgba(6,30,60,0.8), rgba(8,45,85,0.8)) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(77,115,142,0.25) !important;
+    box-shadow: 0 6px 18px rgba(2,8,23,0.5) !important;
+}
+
+.tabs-container [role="tabpanel"] {
+    background: transparent !important;
+    border: none !important;
+    padding-top: 14px !important;
+}
+
+/* Underline below tabs */
+.tabs-underline {
+    height: 1px;
+    width: 100%;
+    background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.06));
+    margin-top: 12px;
+    border-radius: 2px;
+}
+
+/* =========================================
+   HEADER – FORCE SINGLE ROW ALIGNMENT
+   ========================================= */
+
+.app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    width: 100%;
+    padding: 18px 28px;
+    box-sizing: border-box;
+    gap: 24px;
+}
+
+/* LEFT */
+.app-header .header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+}
+
+.app-header .header-logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: #ff3b1f;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.app-header .header-title {
+    font-size: 30px;
+    font-weight: 700;
+    color: #ffffff;
+    white-space: nowrap;
+}
+.app-header .header-user {
+    font-size: 14px;
+    color: #9bbcd6;
+}
+
+/* =====================================================
+   CLEAN HEADER — LOGO + TITLE (LEFT) | LOGIN (RIGHT)
+   ===================================================== */
+
+.app-header {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 18px 28px;
+    box-sizing: border-box;
+}
+
+/* LEFT SIDE */
+.app-header .header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+/* LOGO */
+.app-header .header-logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: #ff3b1f;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 22px;
+    font-weight: 800;
+}
+
+/* TITLE */
+.app-header .header-title {
+    font-size: 30px;
+    font-weight: 700;
+    color: #ffffff;
+    white-space: nowrap;
+}
+
+/* RIGHT SIDE — PUSH TO END */
+.app-header .header-right {
+    margin-left: auto;   /* 🔥 KEY LINE */
+    display: flex;
+    align-items: center;
+}
+
+/* LOGIN / LOGOUT BUTTON */
+.app-header .header-auth-btn {
+    background: transparent;
+    color: #cbdbe8;
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 8px;
+    padding: 7px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.app-header .header-auth-btn:hover {
+    background: rgba(255,255,255,0.06);
+}
+
+
+
+

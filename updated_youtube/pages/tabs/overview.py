@@ -9,7 +9,14 @@ def format_compact(num):
 
 def render(df, channel_id, channels_df):
     # --- 1. METRIC CARDS ---
-    ch_data = channels_df[channels_df['channel_id'] == channel_id].iloc[0]
+    ch_row = channels_df[channels_df['channel_id'] == channel_id]
+
+    if ch_row.empty:
+        st.info("Channel metadata is still syncing. Please wait a moment…")
+        return
+
+    ch_data = ch_row.iloc[0]
+
     c1, c2, c3,c4 = st.columns(4)
     with c1:
         val = format_compact(ch_data.get('subscribers', 0))

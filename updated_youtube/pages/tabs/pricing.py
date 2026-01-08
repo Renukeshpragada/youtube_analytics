@@ -140,40 +140,75 @@ def render(df):
     # EARNINGS BY YEAR PIE CHART
     # ------------------------------
     st.markdown("### 💰 Earnings Distribution by Year")
-    
+
+# ------------------------------
+# DATA (UNCHANGED)
+# ------------------------------
     yearly_earnings = monthly_df.copy()
     yearly_earnings['year'] = pd.to_datetime(yearly_earnings['month']).dt.year
     yearly_earnings_sum = yearly_earnings.groupby('year')['earnings'].sum().reset_index()
-    
-    col_pie, col_stats = st.columns([2, 1])
-    
-    with col_pie:
-        pie_chart = alt.Chart(yearly_earnings_sum).mark_arc(
-            innerRadius=60,
-            outerRadius=150
-        ).encode(
-            theta=alt.Theta('earnings:Q', stack=True),
-            color=alt.Color('year:O',
-                          scale=alt.Scale(scheme='reds'),
-                          legend=alt.Legend(title='Year', labelColor='#9bbcd6', titleColor='#9bbcd6')),
-            tooltip=[alt.Tooltip('year:O', title='Year'), alt.Tooltip('earnings:Q', title='Earnings', format='$,.2f')]
-        ).properties(height=400, width=400)
-        
-        st.altair_chart(pie_chart, use_container_width=True)
-    
-    with col_stats:
-        st.markdown("### 📊 Yearly Earnings")
-        total_earnings = yearly_earnings_sum['earnings'].sum()
-        for _, row in yearly_earnings_sum.iterrows():
-            pct = (row['earnings'] / total_earnings) * 100
-            st.markdown(f"""
-            <div class="year-stat-card">
-                <div class="year-stat-year">{int(row['year'])}</div>
-                <div class="year-stat-views">${row['earnings']:,.2f}</div>
-                <div class="year-stat-pct">{pct:.1f}%</div>
-            </div>
-            """, unsafe_allow_html=True)
 
+    total_earnings = yearly_earnings_sum['earnings'].sum()
+
+# ------------------------------
+# PIE CHART (CENTERED)
+# ------------------------------
+    pie_chart = alt.Chart(yearly_earnings_sum).mark_arc(
+        innerRadius=60,
+        outerRadius=140   # slightly smaller for balance
+    ).encode(
+        theta=alt.Theta('earnings:Q', stack=True),
+        color=alt.Color(
+            'year:O',
+            scale=alt.Scale(scheme='reds'),
+            legend=alt.Legend(
+                title='Year',
+                labelColor='#9bbcd6',
+                titleColor='#9bbcd6'
+            )
+        ),
+        tooltip=[
+            alt.Tooltip('year:O', title='Year'),
+            alt.Tooltip('earnings:Q', title='Earnings', format='$,.2f')
+        ]
+    ).properties(
+        height=380,
+        width=380
+    )
+
+    st.altair_chart(pie_chart, use_container_width=True)
+
+    st.markdown("---")
+
+# ------------------------------
+# DISTRIBUTION GRID (3 PER ROW)
+# ------------------------------
+    st.markdown("### 📊 Yearly Earnings Breakdown")
+
+    rows = [
+        yearly_earnings_sum.iloc[i:i+3]
+        for i in range(0, len(yearly_earnings_sum), 3)
+    ]
+
+    for row_df in rows:
+        cols = st.columns(3)
+        for col, (_, r) in zip(cols, row_df.iterrows()):
+            pct = (r['earnings'] / total_earnings) * 100
+            with col:
+                st.markdown(
+                    f"""
+                    <div class="year-stat-card">
+                        <div class="year-stat-year">{int(r['year'])}</div>
+                        <div class="year-stat-views">${r['earnings']:,.2f}</div>
+                        <div class="year-stat-pct">{pct:.1f}%</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+
+# ------------------------------
+# FOOTNOTE
+# ------------------------------
     st.caption(
-        f"Estimated revenue calculated using Earnings = (Total Views / 1,000) × RPM (${RPM})."
+        "Estimated revenue calculated using: Earnings = (Total Views / 1,000) × RPM."
     )
