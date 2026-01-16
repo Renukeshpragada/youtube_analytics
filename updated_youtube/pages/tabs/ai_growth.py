@@ -1,246 +1,188 @@
 import streamlit as st
 import requests
 import pandas as pd
-import json
+import time
 
-# ==============================
-# GROQ AI CONFIGURATION
-# ==============================
+# ================================================
+# 1. AI CORE (OLLAMA)
+# =================================================
+OLLAMA_URL = "http://localhost:11434/api/chat"
+MODEL_NAME = "tinyllama"
 
-def ask_groq(prompt, system_prompt="You are a helpful YouTube growth strategist assistant."):
-    """
-    Local Ollama AI call
-    No API keys. No internet. No auth.
-    """
-
-    OLLAMA_URL = "http://localhost:11434/api/chat"
-    MODEL_NAME = "tinyllama"  # change ONLY if needed
-
+def ask_ai(prompt, mode="chat", context_data=""):
+    system_prompts = {
+        "chat": "You are a lead YouTube Strategist. Provide only a structured point-by-point report.",
+        "title": "Viral Scientist. List 5 viral titles only. No intro text.",
+        "script": "Script Architect. Provide a 3-act outline.",
+        "analytics": "Data Expert. Analyze metrics into summaries.",
+        "growth": "Growth Hacker. Provide scaling tactics."
+    }
+    
     payload = {
         "model": MODEL_NAME,
         "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": prompt}
+            {"role": "system", "content": f"{system_prompts.get(mode)} Rules: Output ONLY the result. No conversational filler, no 'Fact:', no 'Point:'. Use Markdown and bold keywords."},
+            {"role": "user", "content": f"Context: {context_data}\n\nTask: {prompt}"}
         ],
         "stream": False
     }
-
     try:
-        response = requests.post(
-            OLLAMA_URL,
-            json=payload,
-            timeout=120
-        )
+        r = requests.post(OLLAMA_URL, json=payload, timeout=60)
+        return r.json().get("message", {}).get("content", "Neural link unstable...")
+    except:
+        return "❌ Ollama is not responding. Please check your local server."
 
-        if response.status_code != 200:
-            return f"❌ Ollama Error {response.status_code}: {response.text}"
-
-        data = response.json()
-
-        if "message" in data and "content" in data["message"]:
-            return data["message"]["content"]
-
-        return f"❌ Unexpected Ollama response format:\n{data}"
-
-    except requests.exceptions.ConnectionError:
-        return "❌ **Ollama is not running**"
-
-
-def build_channel_context(df, channel_name):
-    """Build context about the channel for AI"""
-    top = df.sort_values("views", ascending=False).head(5)
-    avg_views = int(df["views"].mean())
-    avg_likes = int(df["likes"].mean())
-    avg_engagement = round(df["engagement_rate"].mean(), 4)
-    
-    ctx = f"""
-Channel Name: {channel_name}
-Total Videos: {len(df)}
-Average Views: {avg_views:,}
-Average Likes: {avg_likes:,}
-Average Engagement Rate: {avg_engagement}
-
-Top 5 Performing Videos:
-"""
-    for idx, (_, r) in enumerate(top.iterrows(), 1):
-        ctx += f"{idx}. {r['title']} - {r['views']:,} views, {r['likes']:,} likes\n"
-    
-    return ctx
-
-def generate_title(df, channel_name, topic=""):
-    """Generate YouTube video title suggestions"""
-    context = build_channel_context(df, channel_name)
-    prompt = f"""
-{context}
-
-Based on this channel's performance data, generate 5 compelling YouTube video title suggestions.
-{"Focus on the topic: " + topic if topic else "Create titles that match the channel's successful content style."}
-
-Requirements:
-- Titles should be 50-60 characters
-- Include power words that increase CTR
-- Match the style of top-performing videos
-- Be specific and curiosity-driven
-
-Format as a numbered list.
-"""
-    return ask_groq(prompt, "You are an expert YouTube title optimizer.")
-
-def generate_description(df, channel_name, title=""):
-    """Generate YouTube video description"""
-    context = build_channel_context(df, channel_name)
-    prompt = f"""
-{context}
-
-{"Generate a YouTube video description for this title: " + title if title else "Generate a YouTube video description template"}
-
-Requirements:
-- First 125 characters should hook viewers and include keywords
-- Include timestamps if applicable
-- Add relevant hashtags
-- Include call-to-action
-- Match the channel's style
-
-Provide a complete description.
-"""
-    return ask_groq(prompt, "You are an expert YouTube description writer.")
-
-def generate_content(df, channel_name, topic=""):
-    """Generate video content outline"""
-    context = build_channel_context(df, channel_name)
-    prompt = f"""
-{context}
-
-{"Create a detailed content outline for a video about: " + topic if topic else "Create a content outline based on the channel's successful videos"}
-
-Requirements:
-- Hook (first 15 seconds)
-- Main points with timestamps
-- Key takeaways
-- Call-to-action
-- Match the channel's successful content structure
-
-Provide a structured outline.
-"""
-    return ask_groq(prompt, "You are an expert YouTube content strategist.")
-
-def get_suggestions(df, channel_name):
-    """Get growth suggestions based on channel data"""
-    context = build_channel_context(df, channel_name)
-    prompt = f"""
-{context}
-
-Analyze this channel's data and provide specific, actionable growth suggestions.
-
-Focus on:
-1. Content strategy improvements
-2. Upload timing optimization
-3. Engagement enhancement
-4. Title and thumbnail improvements
-5. Audience growth tactics
-
-Provide 5-7 specific recommendations based on the actual data.
-"""
-    return ask_groq(prompt, "You are a YouTube growth expert who provides data-driven advice.")
-
-def render(df, channel_input):
+# ================================================
+# 2. PERMANENT CSS (RADIAL & LOCKED LAYOUT)
+# ================================================
+def inject_stable_css():
     st.markdown("""
-    <div class="ai-growth-header">
-        <h1 class="ai-main-title">🤖 AI Growth Assistant</h1>
-        <p class="ai-subtitle">Powered by Groq AI - Get intelligent insights and content suggestions</p>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        
+        /* 1. FORCE RADIAL BACKGROUND - CANNOT BE OVERRIDDEN */
+        
+        
+        .stApp {
+              background:radial-gradient(circle at bottom right, #0a2a43 50%, #04111d 75%, #000000 85%) !important ;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+        }
+
+        /* 2. HEADERS */
+        .ai-hero-header { text-align: center; margin: 20px 0 30px 80px; }
+        .ai-hero-header h1 { font-size: 3rem !important; font-weight: 800 !important; color: white !important; letter-spacing: -2px !important; margin: 0; }
+        .ai-hero-header p { color: #94a3b8 !important; font-size: 1.2rem !important; font-weight: 600; }
+
+        /* 3. NAVIGATION */
+        div.stButton > button {
+            background: rgba(255, 255, 255, 0.03) !important;
+            color: #94a3b8 !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 12px !important;
+            transition: 0.3s;
+        }
+        div.stButton > button[kind="primary"] {
+            background: linear-gradient(135deg, #00e5ff 0%, #007bff 100%) !important;
+            color: white !important;
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.3) !important;
+            border: none !important;
+            
+            
+        }
+
+        /* 4. LOCKED CHAT RENDERING (NO FLICKER) */
+        .yt-chat-viewport { display: flex; flex-direction: column; gap: 35px; width: 90%;  }
+
+        /* User Message: Strictly Far Right */
+        .yt-user-row { width: 90%; display: flex !important; justify-content: flex-end !important; margin-bottom: 10px; }
+        .yt-user-bubble {
+            background: #1e293b !important;
+            color: white !important;
+            padding: 15px 25px !important;
+            border-radius: 24px 24px 4px 24px !important;
+            border: 1px solid rgba(255,255,255,0.1) !important;
+            max-width: 60% !important;
+            font-weight: 600 !important;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3) !important;
+        }
+
+        /* AI Message: Strictly Far Left Document Style */
+        .yt-ai-row { width: 70%; display: flex !important; justify-content: flex-start; margin-left:130px !important; }
+        .yt-ai-report {
+            background: rgba(13, 22, 31, 0.6) !important;
+            backdrop-filter: blur(12px) !important;
+            padding: 35px !important;
+            border-radius: 20px !important;
+            border-left: 5px solid #00e5ff !important;
+            max-width: 80% !important;
+            line-height: 1.8 !important;
+            color: #d1d5db !important;
+            font-size: 1.05rem !important;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5) !important;
+            margin-left:60px;
+        }
+        .yt-ai-report b, .yt-ai-report strong { color: #00e5ff !important; font-weight: 800 !important; }
+
+        /* 5. VISIBLE INPUT HUB */
+        [data-testid="stChatInput"] {
+            background-color: #0d161f !important;
+            border: 1px solid #1e293b !important;
+            border-radius: 16px !important;
+            box-shadow: 0 -10px 50px rgba(0,0,0,0.6) !important;
+        }
+        [data-testid="stChatInput"] textarea { color: white !important; font-size: 1.1rem !important;
+                }
+                [data-testid="stChatInput"] {
+                width:750px;
+                display:flex;
+                margin-left:170px;
+                height:60px;
+                align-items: center;
+                justify-content:center;
+               background: linear-gradient(135deg, #01050a59, #2b2d2d1f) !important;
+                }
+
+    </style>
+    """, unsafe_allow_html=True)
+
+# ================================================
+# 3. RENDER LOGIC
+# ================================================
+def render(df, channel_input):
+    inject_stable_css()
+
+    if "ai_chat_history" not in st.session_state: st.session_state.ai_chat_history = []
+    if "active_mode" not in st.session_state: st.session_state.active_mode = "chat"
+    
+    ctx = f"Channel: {channel_input}"
+
+    # --- TOP HEADER ---
+    st.markdown("""
+    <div class="ai-hero-header">
+        <h1>AI Growth Assistant</h1>
+        <p>Analyze your channel and scale content faster</p>
     </div>
     """, unsafe_allow_html=True)
-    
-    # ==============================
-    # GENERATOR OPTIONS
-    # ==============================
-    st.markdown("### 🛠️ Content Generators")
-    
-    gen_col1, gen_col2, gen_col3, gen_col4 = st.columns(4)
-    
-    with gen_col1:
-        title_btn = st.button("📝 Title Generator", use_container_width=True, key="title_gen")
-    with gen_col2:
-        desc_btn = st.button("📄 Description Generator", use_container_width=True, key="desc_gen")
-    with gen_col3:
-        content_btn = st.button("📋 Content Generator", use_container_width=True, key="content_gen")
-    with gen_col4:
-        suggest_btn = st.button("💡 Get Suggestions", use_container_width=True, key="suggest_gen")
-    
-    # ==============================
-    # GENERATOR OUTPUTS
-    # ==============================
-    if title_btn:
-        with st.spinner("Generating title suggestions..."):
-            topic = st.text_input("Enter topic (optional)", key="title_topic", placeholder="e.g., Python tutorial")
-            if st.button("Generate", key="title_generate"):
-                result = generate_title(df, channel_input, topic)
-                st.markdown(f"<div class='ai-result-box'><h4>📝 Title Suggestions:</h4><pre class='ai-result-text'>{result}</pre></div>", unsafe_allow_html=True)
-    
-    if desc_btn:
-        with st.spinner("Generating description..."):
-            title = st.text_input("Enter video title (optional)", key="desc_title", placeholder="e.g., Learn Python in 10 Minutes")
-            if st.button("Generate", key="desc_generate"):
-                result = generate_description(df, channel_input, title)
-                st.markdown(f"<div class='ai-result-box'><h4>📄 Video Description:</h4><pre class='ai-result-text'>{result}</pre></div>", unsafe_allow_html=True)
-    
-    if content_btn:
-        with st.spinner("Generating content outline..."):
-            topic = st.text_input("Enter video topic (optional)", key="content_topic", placeholder="e.g., Machine Learning Basics")
-            if st.button("Generate", key="content_generate"):
-                result = generate_content(df, channel_input, topic)
-                st.markdown(f"<div class='ai-result-box'><h4>📋 Content Outline:</h4><pre class='ai-result-text'>{result}</pre></div>", unsafe_allow_html=True)
-    
-    if suggest_btn:
-        with st.spinner("Analyzing your channel and generating suggestions..."):
-            result = get_suggestions(df, channel_input)
-            st.markdown(f"<div class='ai-result-box'><h4>💡 Growth Suggestions:</h4><pre class='ai-result-text'>{result}</pre></div>", unsafe_allow_html=True)
-    
-    st.markdown("---")
-    
-    # ==============================
-    # CHATBOT SECTION
-    # ==============================
-    st.markdown("### 💬 AI Chatbot")
-    st.markdown("Ask me anything about growing your YouTube channel!")
-    
-    if "ai_messages" not in st.session_state:
-        st.session_state.ai_messages = []
-    
-    # Display chat history
-    chat_container = st.container()
-    with chat_container:
-        for msg in st.session_state.ai_messages:
-            if msg["role"] == "user":
-                st.markdown(f'<div class="chat-user-bubble">{msg["content"]}</div>', unsafe_allow_html=True)
-            else:
-                st.markdown(f'<div class="chat-ai-bubble">{msg["content"]}</div>', unsafe_allow_html=True)
-    
-    # Chat input
-    with st.form("ai_chat_form", clear_on_submit=True):
-        col1, col2 = st.columns([5, 1])
-        with col1:
-            user_query = st.text_input(
-                "",
-                placeholder="Ask: How can I improve my video titles? What's the best upload time?",
-                label_visibility="collapsed",
-                key="chat_input"
-            )
-        with col2:
-            submitted = st.form_submit_button("Send ➤", use_container_width=True)
-    
-    if submitted and user_query:
-        st.session_state.ai_messages.append({"role": "user", "content": user_query})
-        
-        with st.spinner("AI is thinking..."):
-            context = build_channel_context(df, channel_input)
-            system_prompt = f"""You are an expert YouTube growth strategist. Use this channel data to provide specific, actionable advice:
 
-{context}
+    # --- NAVIGATION TABS ---
+    nav_tabs = [("chat", "💬 Chat"), ("title", "🚀 Titles"), ("script", "📄 Scripts"), ("analytics", "📊 Analytics"), ("growth", "📈 Growth")]
+    cols = st.columns(len(nav_tabs))
+    for i, (key, label) in enumerate(nav_tabs):
+        with cols[i]:
+            if st.button(label, key=f"btn_{key}", use_container_width=True, 
+                         type="primary" if st.session_state.active_mode == key else "secondary"):
+                st.session_state.active_mode = key
+                st.rerun()
 
-Always reference the actual data when giving advice. Be specific and practical."""
+    # --- THE CHAT HUB (PERSISTENT SCROLL) ---
+    st.markdown("<br>", unsafe_allow_html=True)
+    chat_box = st.container(height=540, width=1200,border=False)
+
+    with chat_box:
+        if not st.session_state.ai_chat_history:
+            # Landing Screen
+            st.markdown("<div style='text-align:center;padding-bottom:0px;padding-top:200px; padding-left:250px;'><h2>How can I help you grow today?</h2><p style='color:#64748b;'>Choose a tool above or start typing below.</p></div>", unsafe_allow_html=True)
             
-            ai_response = ask_groq(user_query, system_prompt)
-            st.session_state.ai_messages.append({"role": "ai", "content": ai_response})
-        
-        st.rerun()
+        else:
+            # LOCKED HTML RENDERING (Prevents the 2-second state reset)
+            for m in st.session_state.ai_chat_history:
+                if m["role"] == "user":
+                    st.markdown(f'<div class="yt-user-row"><div class="yt-user-bubble">{m["content"]}</div></div>', unsafe_allow_html=True)
+                else:
+                    st.markdown(f'<div class="yt-ai-row"><div class="yt-ai-report">{m["content"]}</div></div>', unsafe_allow_html=True)
+
+    # --- INPUT HUB ---
+    st.markdown("<br>", unsafe_allow_html=True)
+    _, input_col, _ = st.columns([1, 6, 1])
+    with input_col:
+        user_query = st.chat_input("Ask a growth coach...")
+    
+    if user_query:
+        trigger_chat(user_query, ctx)
+
+def trigger_chat(query, ctx):
+    st.session_state.ai_chat_history.append({"role": "user", "content": query})
+    with st.spinner("AI Processing..."):
+        response = ask_ai(query, mode=st.session_state.active_mode, context_data=ctx)
+        st.session_state.ai_chat_history.append({"role": "assistant", "content": response})
+    st.rerun()

@@ -3,12 +3,18 @@ import altair as alt
 import analytics.analytics as analytics
 
 def render(df):
-    st.subheader("📈 Performance Analysis")
+    st.markdown("""
+    <div style="margin-bottom:30px;">
+        <h2 style="font-weight:800; color:white; font-size:2.2rem;margin-left:499px;">📈 Performance Analysis</h2>
+    </div>
+    """, unsafe_allow_html=True)
 
     # ==============================
-    # 1. MONTHLY VIEWS DISTRIBUTION (Professional Area Chart)
+    # 1. MONTHLY VIEWS DISTRIBUTION (Professional Area Char) 
     # ==============================
+    
     st.markdown("### Monthly Views Trend")
+    st.markdown("<hr>", unsafe_allow_html=True)
     mv = analytics.monthly_views_styled(df)
     
     view_chart = alt.Chart(mv).mark_area(
@@ -33,6 +39,7 @@ def render(df):
     # 2. UPLOAD FREQUENCY (Solid Bar Chart - No Overlapping Lines)
     # ==============================
     st.markdown("### Monthly Upload Frequency")
+    st.markdown("<hr>", unsafe_allow_html=True)
     
     # ==============================
 # DATA (UNCHANGED)
@@ -101,7 +108,9 @@ def render(df):
     # =============================
     # 3. AVERAGE VIEWS PER MONTH (Matching Area Chart)
     # ==============================
+    st.markdown("<hr>", unsafe_allow_html=True)
     st.markdown("### Average Views per Video")
+    st.markdown("<hr>", unsafe_allow_html=True)
 
 # ==============================
 # DATA (UNCHANGED)

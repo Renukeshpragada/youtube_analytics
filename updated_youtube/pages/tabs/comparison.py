@@ -5,12 +5,12 @@ import pandas as pd
 
 def render(channel_input, channels_df, conn):
     st.markdown("""
-    <div class="section-header">
-        <h2>⚖️ Channel Comparison</h2>
-        <p>Compare your channel's performance with competitors</p>
+       <div style="margin-bottom:30px;">
+        <h2 style="font-weight:800; color:white; font-size:2.2rem;margin-left:499px;">⚖️ Channel Comparison</h2>
+        <p style="color:#94a3b8; font-size:1rem;margin-left:500px;">Compare your channel's performance with competitors</p>
     </div>
     """, unsafe_allow_html=True)
-
+    st.markdown("<hr>", unsafe_allow_html=True)
     # Get the full list of cannel names from the database
     channel_names = channels_df["channel_name"].tolist()
 
@@ -31,7 +31,7 @@ def render(channel_input, channels_df, conn):
         )
 
     with col2:
-        # Use index=None to create a blank placeholder
+        # Use indx=Non to crate a blankplaceholder
         ch2_name = st.selectbox(
             "Select Channel 2",
             channel_names,
@@ -40,7 +40,7 @@ def render(channel_input, channels_df, conn):
             key="compare_ch2"
         )
 
-    # CHECK: Only show comparison if a second channel is selected
+    # CHECK: Only show comparison if a secon channel is selected
     
 
     if ch2_name is None or ch1_name is None:
@@ -63,7 +63,8 @@ def render(channel_input, channels_df, conn):
 
         st.markdown("---")
         st.subheader("Key Metrics Comparison")
-
+        
+        st.markdown("---")
         c1, c2 = st.columns(2)
 
         with c1:
@@ -80,7 +81,7 @@ def render(channel_input, channels_df, conn):
 
         st.markdown("---")
         st.markdown("### 📊 Monthly Engagement Trend Comparison")
-
+        st.markdown("---")
         m1 = (
             df1.groupby(["year", "month"])["engagement_rate"]
             .mean()
@@ -130,10 +131,10 @@ def render(channel_input, channels_df, conn):
             f"🏆 Overall Insight: **{winner}** shows stronger average engagement between these two channels."
         )
 
-
+        st.markdown("---")
 
         st.markdown("### 📊 Average Views per Video")
-
+        st.markdown("---")
     avg_views_df = pd.DataFrame({
         "Channel": [ch1_name, ch2_name],
         "Avg Views": [df1['views'].mean(), df2['views'].mean()]
@@ -161,9 +162,9 @@ def render(channel_input, channels_df, conn):
     ).properties(height=320).configure_view(strokeOpacity=0)
 
     st.altair_chart(avg_views_chart, use_container_width=True)
-
+    st.markdown("---")
     st.markdown("### 📅 Upload Frequency Comparison")
-
+    st.markdown("---")
     freq_a = df1.groupby(['year', 'month']).size().reset_index(name='uploads')
     freq_b = df2.groupby(['year', 'month']).size().reset_index(name='uploads')
 
@@ -191,9 +192,9 @@ def render(channel_input, channels_df, conn):
     ).properties(height=350).configure_view(strokeOpacity=0)
 
     st.altair_chart(freq_chart, use_container_width=True)
-
+    st.markdown("---")
     st.markdown("### 📈 Views Trend Comparison")
-
+    st.markdown("---")
     trend_a = df1.groupby(['year', 'month'])['views'].mean().reset_index()
     trend_b = df2.groupby(['year', 'month'])['views'].mean().reset_index()
 
@@ -221,3 +222,4 @@ def render(channel_input, channels_df, conn):
     ).properties(height=380).configure_view(strokeOpacity=0)
 
     st.altair_chart(trend_chart, use_container_width=True)
+ 
