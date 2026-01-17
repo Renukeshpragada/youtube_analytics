@@ -1,12 +1,12 @@
 import pandas as pd
 import mysql.connector
-
+import streamlit as st
 def load_video_data_by_channel(channel_id):
     conn = mysql.connector.connect(
         host="localhost",
-        user="yt_user",
-        password="StrongPass@123",
-        database="youtube_analytics"
+        user=st.secrets["database"]["user"],
+        password=st.secrets["database"]["password"],
+        database=st.secrets["database"]["name"]
     )
 
     query = """
@@ -132,9 +132,9 @@ def load_video_data_for_ai(channel_id):
 
     conn = mysql.connector.connect(
         host="localhost",
-        user="root",
-        password="StrongPass@123",
-        database="youtube_analytics"
+        user=st.secrets["database"]["user"],
+        password=st.secrets["database"]["password"],
+        database=st.secrets["database"]["name"]
     )
 
     query = """

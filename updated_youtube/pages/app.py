@@ -121,7 +121,7 @@ if "pending_channel" in st.session_state and st.session_state.pending_channel:
 @st.cache_resource
 def get_connection():
     return mysql.connector.connect(
-        host="localhost", user="yt_user", password="StrongPass@123", database="youtube_analytics"
+        host="localhost", user=st.secrets["database"]["user"], password=st.secrets["database"]["password"], database=st.secrets["database"]["name"]
     )
 
 @st.cache_data
@@ -162,7 +162,17 @@ with header_row:
         search_query = st.text_input("", placeholder="🔍 Search any YouTube Channel...", value=st.session_state.search_value, label_visibility="collapsed")
     with u_col:
         u_name = st.session_state.user.get('name', 'User') if st.session_state.get('user') else 'Guest'
-        st.markdown(f'<div style="text-align:right; font-size:0.85rem; color:#94a3b8;"><b style="color:white;">{u_name}</b><a href="/?logout=true" style="color:black; text-decoration:none;margin-left:45px;background:linear-gradient(135deg, rgb(230 86 18) 10%, rgb(222, 24, 24) 90%); padding:10px 15px; border-radius:5px; box-shadow: 0 5px 15px rgba(246,28,3,0.3);">Logout</a></div>', unsafe_allow_html=True)
+        if u_name == 'Guest':
+            st.markdown(
+                f'<div style="display:flex;justify-content:flex-end;gap:20px;"><div style="max-width:180px;word-break:break-word;text-align:right;color:white;"><b>{u_name}</b></div><a href="updated_youtube\authentication.py" style="color:black;text-decoration:none;background:linear-gradient(135deg,rgb(230 86 18) 10%,rgb(222,24,24) 90%);padding:7px 15px;border-radius:5px;white-space:nowrap;">Login</a></div>',
+                unsafe_allow_html=True
+            )
+        else:   
+            st.markdown(
+                f'<div style="display:flex;justify-content:flex-end;gap:20px;"><div style="max-width:180px;word-break:break-word;text-align:right;color:white;"><b>{u_name}</b></div><a href="/?logout=true" style="color:black;text-decoration:none;background:linear-gradient(135deg,rgb(230 86 18) 10%,rgb(222,24,24) 90%);padding:7px 15px;border-radius:5px;white-space:nowrap;">Logout</a></div>',
+                    unsafe_allow_html=True
+                        )
+
 
 if search_query and search_query != st.session_state.search_value:
     st.session_state.search_value = search_query

@@ -1,9 +1,9 @@
 import os
+import streamlit as st
 import requests
 
-GROQ_API_KEY = "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"
-GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
-
+GROQ_API_KEY = st.secrets["groq"]["GROQ_API_KEY"]
+GROQ_URL = st.secrets["groq"]["GROQ_URL"]
 def ask_groq(prompt):
     headers = {
         "Authorization": f"Bearer {GROQ_API_KEY}",

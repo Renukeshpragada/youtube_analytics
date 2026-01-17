@@ -4,7 +4,7 @@ import requests
 import mysql.connector
 from datetime import datetime
 import isodate  # To parse YouTube duration strings
-
+import streamlit as st
 # ==========================================
 # 1. OAUTH & AUTHENTICATION FUNCTIONS
 # ==========================================
@@ -12,7 +12,7 @@ import isodate  # To parse YouTube duration strings
 def get_youtube_channel_info(access_token):
     """Fetches the logged-in user's YouTube channel details using the OAuth token."""
     headers = {'Authorization': f'Bearer {access_token}'}
-    url = "https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&mine=true"
+    url = st.secrets["youtube"]["url"]
     
     response = requests.get(url, headers=headers).json()
     

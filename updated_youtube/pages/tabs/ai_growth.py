@@ -2,35 +2,83 @@ import streamlit as st
 import requests
 import pandas as pd
 import time
+import os
 
-# ================================================
-# 1. AI CORE (OLLAMA)
-# =================================================
-OLLAMA_URL = "http://localhost:11434/api/chat"
-MODEL_NAME = "tinyllama"
+GROQ_API_KEY = st.secrets["groq"]["GROQ_API_KEY"]
+GROQ_URL = st.secrets["groq"]["GROQ_URL"]
+MODEL_NAME = st.secrets["groq"]["MODEL_NAME"]
+
 
 def ask_ai(prompt, mode="chat", context_data=""):
     system_prompts = {
-        "chat": "You are a lead YouTube Strategist. Provide only a structured point-by-point report.",
-        "title": "Viral Scientist. List 5 viral titles only. No intro text.",
-        "script": "Script Architect. Provide a 3-act outline.",
-        "analytics": "Data Expert. Analyze metrics into summaries.",
-        "growth": "Growth Hacker. Provide scaling tactics."
+        "chat": (
+            "You are a senior YouTube Growth Strategist.\n"
+            "Respond with a structured, point-by-point analysis.\n"
+            "No greetings. No filler. No explanations.\n"
+            "Use Markdown. Bold key insights."
+        ),
+
+        "title": (
+            "You are a viral YouTube title generator.\n"
+            "Generate EXACTLY 5 titles.\n"
+            "Each title must be on a new bullet point.\n"
+            "No intro text. No numbering explanation.\n"
+            "Only bullet points.\n"
+            "Titles must be concise, high-CTR, curiosity-driven."
+        ),
+
+        "script": (
+            "You are a YouTube script architect.\n"
+            "Return a 3-act structure:\n"
+            "- Act 1: Hook\n"
+            "- Act 2: Core Value\n"
+            "- Act 3: CTA\n"
+            "Use bullet points only. No paragraphs."
+        ),
+
+        "analytics": (
+            "You are a YouTube analytics expert.\n"
+            "Convert metrics into insights.\n"
+            "Each insight must be a bullet point.\n"
+            "Bold important numbers or trends."
+        ),
+
+        "growth": (
+            "You are a YouTube growth hacker.\n"
+            "List actionable growth tactics.\n"
+            "Each tactic must be one bullet point.\n"
+            "No motivational language. Only actions."
+        )
     }
-    
+
+    headers = {
+        "Authorization": f"Bearer {GROQ_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
     payload = {
         "model": MODEL_NAME,
         "messages": [
-            {"role": "system", "content": f"{system_prompts.get(mode)} Rules: Output ONLY the result. No conversational filler, no 'Fact:', no 'Point:'. Use Markdown and bold keywords."},
-            {"role": "user", "content": f"Context: {context_data}\n\nTask: {prompt}"}
+            {
+                "role": "system",
+                "content": system_prompts.get(mode)
+            },
+            {
+                "role": "user",
+                "content": f"Context:\n{context_data}\n\nTask:\n{prompt}"
+            }
         ],
-        "stream": False
+        "temperature": 0.6,
+        "max_tokens": 350
     }
+
     try:
-        r = requests.post(OLLAMA_URL, json=payload, timeout=60)
-        return r.json().get("message", {}).get("content", "Neural link unstable...")
-    except:
-        return "❌ Ollama is not responding. Please check your local server."
+        r = requests.post(GROQ_URL, headers=headers, json=payload, timeout=30)
+        r.raise_for_status()
+        return r.json()["choices"][0]["message"]["content"]
+
+    except Exception as e:
+        return "❌ AI service unavailable. Please try again."
 
 # ================================================
 # 2. PERMANENT CSS (RADIAL & LOCKED LAYOUT)
@@ -161,7 +209,7 @@ def render(df, channel_input):
     with chat_box:
         if not st.session_state.ai_chat_history:
             # Landing Screen
-            st.markdown("<div style='text-align:center;padding-bottom:0px;padding-top:200px; padding-left:250px;'><h2>How can I help you grow today?</h2><p style='color:#64748b;'>Choose a tool above or start typing below.</p></div>", unsafe_allow_html=True)
+            st.markdown("<div style='text-align:center;padding-top:200px; padding-left:250px;'><h2>How can I help you grow today?</h2><p style='color:#64748b;'>Choose a tool above or start typing below.</p></div>", unsafe_allow_html=True)
             
         else:
             # LOCKED HTML RENDERING (Prevents the 2-second state reset)
