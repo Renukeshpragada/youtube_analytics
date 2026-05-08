@@ -90,6 +90,7 @@ The platform transforms raw YouTube channel data into interactive visual dashboa
 
 ## 🔹 Revenue Insights
 ![Revenue](images/earn1.png)
+![Revenue](images/earn2.png)
 
 ## 🔹 AI Growth Assistant
 ![AI Assistant](images/ai1.png)
